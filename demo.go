@@ -7,6 +7,11 @@ type Article struct {
 	Title    string             `json: "title,omitempty" bson:"title,omitempty"`
 	Subtitle string             `json: "subtitle,omitempty" bson:"subtitle,omitempty"`
 	Content  string             `json: "content,omitempty" bson:"content,omitempty"`
+
+		ID       primitive.ObjectID `json:"Id"`
+	Title    string `json: "title"`
+	Subtitle string `json: "subtitle"`
+	Content  string `json: "content"`
 }
 */
 

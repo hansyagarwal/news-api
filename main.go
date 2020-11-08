@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -29,10 +30,10 @@ func handleRequests() {
 }
 
 type Article struct {
-	Id       string `json:"Id"`
-	Title    string `json: "title"`
-	Subtitle string `json: "subtitle"`
-	Content  string `json: "content"`
+	ID       primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Title    string             `json: "title,omitempty" bson:"title,omitempty"`
+	Subtitle string             `json: "subtitle,omitempty" bson:"subtitle,omitempty"`
+	Content  string             `json: "content,omitempty" bson:"content,omitempty"`
 	//CreationTime
 }
 
@@ -78,14 +79,43 @@ func returnAllArticles(w http.ResponseWriter, r *http.Request) {
 }
 
 func returnById(w http.ResponseWriter, r *http.Request) {
-
-	id := strings.TrimPrefix(r.URL.Path, "/articles/")
-	fmt.Println(id)
-	for _, article := range Articles {
-		if article.Id == id {
-			json.NewEncoder(w).Encode(article)
-		}
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://news-api:qwertyuiop@cluster0.gv8ol.mongodb.net/test?retryWrites=true&w=majority"))
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer client.Disconnect(ctx)
+
+	w.Header().Set("content-type", "application/json")
+
+	params := strings.TrimPrefix(r.URL.Path, "/articles/")
+	fmt.Println(params)
+	docID, err := primitive.ObjectIDFromHex(params)
+
+	//id, _ := primitive.ObjectIDFromHex(params["id"])
+	//var article Article
+	result := Article{}
+	collection := client.Database("news").Collection("articles")
+	err = collection.FindOne(ctx, bson.M{"_id": docID}).Decode(&result)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"message": "` + err.Error() + `"}`))
+		return
+	}
+	json.NewEncoder(w).Encode(result)
+
+	/*
+		for _, article := range Articles {
+			if article.Id == id {
+				json.NewEncoder(w).Encode(article)
+			}
+		}*/
 }
 
 func CreateArticle(w http.ResponseWriter, r *http.Request) {
