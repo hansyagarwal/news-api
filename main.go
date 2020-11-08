@@ -22,9 +22,16 @@ func home(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	http.HandleFunc("/", home)
 
-	http.HandleFunc("/articles", returnArticle)
+	//http.HandleFunc("/articles", returnArticle)
 	http.HandleFunc("/articles/", returnById)
 	//http.HandleFunc("/articles", CreateArticle)
+	http.HandleFunc("/articles", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			//CreateArticle()
+		} else {
+			//returnArticle()
+		}
+	})
 
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
@@ -66,23 +73,35 @@ func returnById(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateArticle(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var a Article
+	err := decoder.Decode(&a)
+	if err != nil {
+		panic(err)
+	}
+	log.Println(a)
 
-	if r.Method == "POST" {
-		w.Header().Add("content-type", "application/json")
-		var article Article
-		json.NewDecoder(r.Body).Decode(&article)
-		client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://news-api:qwertyuiop@cluster0.gv8ol.mongodb.net/test"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		collection := client.Database("news").Collection("articles")
-		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-		result, _ := collection.InsertOne(ctx, article)
-		json.NewEncoder(w).Encode(result)
-	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://news-api:qwertyuiop@cluster0.gv8ol.mongodb.net/test?retryWrites=true&w=majority"))
+	if err != nil {
+		log.Fatal(err)
 	}
 
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer client.Disconnect(ctx)
+
+	quickstartDb := client.Database("news")
+	articlesCollection := quickstartDb.Collection("articles")
+
+	createResult, err := articlesCollection.InsertOne(ctx, a)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(createResult.InsertedID)
 }
 
 func main() {
