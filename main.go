@@ -22,17 +22,9 @@ func home(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	http.HandleFunc("/", home)
 
-	//http.HandleFunc("/articles", returnArticle)
+	http.HandleFunc("/articles", returnAllArticles)
 	http.HandleFunc("/articles/", returnById)
-	//http.HandleFunc("/articles", CreateArticle)
-	http.HandleFunc("/articles", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "POST" {
-			//CreateArticle()
-		} else {
-			//returnArticle()
-		}
-	})
-
+	http.HandleFunc("/articless", CreateArticle)
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
 
@@ -57,11 +49,50 @@ var Articles []Article
 
 func returnArticle(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("endpoint hit: returnArticle")
+
 	json.NewEncoder(w).Encode(Articles)
 }
 
+func returnAllArticles(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://news-api:qwertyuiop@cluster0.gv8ol.mongodb.net/test?retryWrites=true&w=majority"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer client.Disconnect(ctx)
+
+	collection := client.Database("news").Collection("articles")
+	var arti []Article
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{ "message": "` + err.Error() + `"}`))
+		return
+	}
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		var art Article
+		cursor.Decode(&art)
+		arti = append(arti, art)
+	}
+
+	if err := cursor.Err(); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{ "message": "` + err.Error() + `"}`))
+		return
+	}
+	json.NewEncoder(w).Encode(arti)
+}
+
 func returnById(w http.ResponseWriter, r *http.Request) {
-	//i := r.RequestURI
 
 	id := strings.TrimPrefix(r.URL.Path, "/articles/")
 	fmt.Println(id)
