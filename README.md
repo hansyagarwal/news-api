@@ -17,6 +17,8 @@ import/download all package and libraries using `go get`
 go run main.go
 ```
 > port: 3000
+> everything is case-sensitive
+> the mongodb uri is kept public for some time
 
 open postman and create new request
 
@@ -36,6 +38,6 @@ click send
 switch to GET and type:
 `localhost:3000/articles` to list all the articles
 
-`localhost:3000/articles/<id>` to get the article by its id (try `5fa927a02950189579ca32f4` as id)
+`localhost:3000/articles/<id>` to get the article by its id (try `5fa96b181aff7c9b9bb04e8a` as id)
 
-`localhost:3000/articles/search?q=<search term>` to get the article by its title/subtitle/content (if the title is more than 1 word use `%20` for space, eg: `/articles/search?q=sup%20sub`)
+`localhost:3000/articles/search?q=<search term>` to get the article by its title/subtitle/content (if the title is more than 1 word use `%20` for space, eg: `/articles/search?q=Covid19%20vaccine`)
