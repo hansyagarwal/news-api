@@ -211,9 +211,15 @@ func SearchArticle(w http.ResponseWriter, r *http.Request) {
 	collection := client.Database("news").Collection("articles")
 	err = collection.FindOne(ctx, bson.M{"title": q}).Decode(&result)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"message": "` + err.Error() + `"}`))
-		return
+		err = collection.FindOne(ctx, bson.M{"subtitle": q}).Decode(&result)
+		if err != nil {
+			err = collection.FindOne(ctx, bson.M{"content": q}).Decode(&result)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(`{"message": "` + err.Error() + `"}`))
+				return
+			}
+		}
 	}
 
 	json.NewEncoder(w).Encode(result)
