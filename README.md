@@ -17,7 +17,9 @@ import/download all package and libraries using `go get`
 go run main.go
 ```
 > port: 3000
+
 > everything is case-sensitive
+
 > the mongodb uri is kept public for some time
 
 open postman and create new request
