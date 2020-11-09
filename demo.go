@@ -67,3 +67,79 @@ func returnArticle(w http.ResponseWriter, r *http.Request) {
 		handleRequests()
 	}
 */
+
+/*
+
+func ReturnAllArticles(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://news-api:qwertyuiop@cluster0.gv8ol.mongodb.net/test?retryWrites=true&w=majority"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer client.Disconnect(ctx)
+
+	collection := client.Database("news").Collection("articles")
+	var arti []Article
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{ "message": "` + err.Error() + `"}`))
+		return
+	}
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		var art Article
+		cursor.Decode(&art)
+		arti = append(arti, art)
+	}
+
+	if err := cursor.Err(); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{ "message": "` + err.Error() + `"}`))
+		return
+	}
+	json.NewEncoder(w).Encode(arti)
+}
+
+
+func CreateArticle(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var a Article
+	err := decoder.Decode(&a)
+	if err != nil {
+		panic(err)
+	}
+	log.Println(a)
+
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://news-api:qwertyuiop@cluster0.gv8ol.mongodb.net/test?retryWrites=true&w=majority"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer client.Disconnect(ctx)
+
+	quickstartDb := client.Database("news")
+	articlesCollection := quickstartDb.Collection("articles")
+
+	createResult, err := articlesCollection.InsertOne(ctx, a)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(createResult.InsertedID)
+}
+*/
