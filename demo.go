@@ -1,5 +1,6 @@
 //code i used for demo
 //P.S dont run this file
+package main
 
 /*
 type Article struct {

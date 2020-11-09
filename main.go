@@ -23,8 +23,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	http.HandleFunc("/", home)
 
-	http.HandleFunc("/articles", returnAllArticles)
-	http.HandleFunc("/articles/", returnById)
+	http.HandleFunc("/articles", ReturnAllArticles)
+	http.HandleFunc("/articles/", ReturnById)
 	http.HandleFunc("/articless", CreateArticle)
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
@@ -39,7 +39,7 @@ type Article struct {
 
 var Articles []Article
 
-func returnAllArticles(w http.ResponseWriter, r *http.Request) {
+func ReturnAllArticles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://news-api:qwertyuiop@cluster0.gv8ol.mongodb.net/test?retryWrites=true&w=majority"))
@@ -78,7 +78,7 @@ func returnAllArticles(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(arti)
 }
 
-func returnById(w http.ResponseWriter, r *http.Request) {
+func ReturnById(w http.ResponseWriter, r *http.Request) {
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://news-api:qwertyuiop@cluster0.gv8ol.mongodb.net/test?retryWrites=true&w=majority"))
 	if err != nil {
 		log.Fatal(err)
