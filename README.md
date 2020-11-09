@@ -40,6 +40,6 @@ click send
 switch to GET and type:
 `localhost:3000/articles` to list all the articles
 
-`localhost:3000/articles/<id>` to get the article by its id (try `5fa96b181aff7c9b9bb04e8a` as id)
+`localhost:3000/articles/<id>` to get the article by its id (try `5fa96b181aff7c9b9bb04e8a` as id or put `localhost:3000/articles/5fa96b181aff7c9b9bb04e8a`)
 
-`localhost:3000/articles/search?q=<search term>` to get the article by its title/subtitle/content (if the title is more than 1 word use `%20` for space, eg: `/articles/search?q=Covid19%20vaccine`)
+`localhost:3000/articles/search?q=<search term>` to get the article by its title/subtitle/content (if the title is more than 1 word use `%20` for space, eg: `localhost:3000/articles/search?q=Covid19%20vaccine`)
