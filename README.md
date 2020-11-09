@@ -22,7 +22,7 @@ open postman and create new request
 
 ### for creating an article, 
 switch from GET to POST and type `localhost:3000/articles`
-select `body` and then `raw` and type
+select `body` and then `raw` and for example type
 ```
 {
 	"Title": "news article",
