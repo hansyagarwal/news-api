@@ -16,21 +16,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to the news api")
-	fmt.Println("endpoint hit: homePage")
-}
-
 func handleRequests() {
-	http.HandleFunc("/", home)
-
 	articleHandlers := newArticleHandlers()
-	http.HandleFunc("/articles", articleHandlers.articles)
 
-	//http.HandleFunc("/articles", ReturnAllArticles)
+	http.HandleFunc("/", home)
+	http.HandleFunc("/articles", articleHandlers.articles)
 	http.HandleFunc("/articles/", ReturnById)
-	//http.HandleFunc("/articless", CreateArticle)
 	http.HandleFunc("/articles/search", SearchArticle)
+
 	log.Fatal(http.ListenAndServe(":3000", nil))
 }
 
@@ -47,6 +40,15 @@ type articleHandlers struct {
 	store map[string]Article
 }
 
+var Articles []Article
+
+//home function
+func home(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Welcome to the news api")
+	fmt.Println("endpoint hit: homePage")
+}
+
+//function to check if "/articles" request is GET or POST
 func (h *articleHandlers) articles(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -61,6 +63,7 @@ func (h *articleHandlers) articles(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//function to handle GET request for listing all articles
 func (h *articleHandlers) get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 
@@ -100,6 +103,7 @@ func (h *articleHandlers) get(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(arti)
 }
 
+//function to handle POST request of creating article
 func (h *articleHandlers) post(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var a Article
@@ -130,6 +134,8 @@ func (h *articleHandlers) post(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	result, err := articlesCollection.UpdateOne(ctx, bson.M{"title": a.Title}, bson.D{{"$set", bson.D{{"createdat", time.Now()}}}})
+	_ = result
 	fmt.Println(createResult.InsertedID)
 }
 
@@ -139,8 +145,7 @@ func newArticleHandlers() *articleHandlers {
 	}
 }
 
-var Articles []Article
-
+//function to handle GET request to get article by it's id
 func ReturnById(w http.ResponseWriter, r *http.Request) {
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://news-api:qwertyuiop@cluster0.gv8ol.mongodb.net/test?retryWrites=true&w=majority"))
 	if err != nil {
@@ -161,8 +166,6 @@ func ReturnById(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(params)
 	docID, err := primitive.ObjectIDFromHex(params)
 
-	//id, _ := primitive.ObjectIDFromHex(params["id"])
-	//var article Article
 	result := Article{}
 	collection := client.Database("news").Collection("articles")
 	err = collection.FindOne(ctx, bson.M{"_id": docID}).Decode(&result)
@@ -172,15 +175,9 @@ func ReturnById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(result)
-
-	/*
-		for _, article := range Articles {
-			if article.Id == id {
-				json.NewEncoder(w).Encode(article)
-			}
-		}*/
 }
 
+//function to handle GET request to search for an article by its title,subtitle or content
 func SearchArticle(w http.ResponseWriter, r *http.Request) {
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://news-api:qwertyuiop@cluster0.gv8ol.mongodb.net/test?retryWrites=true&w=majority"))
 	if err != nil {
